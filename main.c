@@ -17,8 +17,8 @@ typedef struct RGB_t {
 RGB gray_to_rgb(float gray) {
 	RGB rgb;
 	rgb.r = 0.0;
-	rgb.g = 0.0;
-	rgb.b = gray;
+	rgb.g = gray;
+	rgb.b = (1.0/gray)*2.0;
 	return rgb;
 }
 
@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
 			// int calc = (int)precalc; 
 			// char c = gradient5_1[calc];
 			// printf("%c",c);
-			float gray = precalc*100.0;
+			float gray = precalc*(COLOR_DENSITY);
 			RGB rgb = gray_to_rgb(gray);
 			bmp_pixel_init(&img.img_pixels[y][x], rgb.r, rgb.g, rgb.b);
 

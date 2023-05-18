@@ -32,11 +32,12 @@ Point getPoint(int x, int y, float x_offset, float y_offset, float* layout ) {
 
 
 Map gen_diamond_square(bmp_img* img ) {
+	printf("Generating diamond-square map...\n");
 	Map gmap;
 	int count = 1;
 	// For each division
 	int noise_i = 0;
-	for(float i = (float)MAPSIZE-1; i > 0.01; i = i/4.0f) {
+	for(float i = (float)MAPSIZE-1; i > 0.1; i = i/4.0f) {
 
 		float topLeft[2] = { 0, 0 };
 		float topRight[2] = { 0, 1 };
@@ -85,7 +86,7 @@ Map gen_diamond_square(bmp_img* img ) {
 
 				// Center Average + random
 				Point centercoords = getPoint(x,y,x_offset,y_offset,center); 
-				gmap.map[(int)centercoords.y][(int)centercoords.y] = ((tL+tR+bL+bR)/4.0f) + noise(noise_i, 5);
+				gmap.map[(int)centercoords.y][(int)centercoords.x] = ((tL+tR+bL+bR)/4.0f) + noise(noise_i, 5);
 				// noise_i = noise_i+(int)(noise(5+noise_i,1));
 
 				// Diamond Step
@@ -114,8 +115,10 @@ Map gen_diamond_square(bmp_img* img ) {
 		count = count * 2; 
 		// Decrease noise output
 		//NOISEMUL = NOISEMUL/2.0f;
+	
 	}
 
+	printf("DONE!\n");
 	return gmap;
 }
 
@@ -131,12 +134,21 @@ void floodCell(float tolerance, Map* map, Map* heatmap, int* coords, int* adjcoo
 }
 
 void genHeatMap(Map* map, Map* heatmap) {
+	printf("Generating heatmap...\n");
 	int count = 1;
 	// For each division
 	int noise_i = 0;
 	float center[2] = {0.0, 0.0};
-	for (float i = (float)MAPSIZE - 1; i > 0.00001; i = i / 4.0f)
+	float progress = 0.0;
+	float prev_progress = 0.0;
+	for (float i = (float)MAPSIZE - 1; i > CYCLE_DIV; i = i / 4.0f)
 	{
+
+		progress = (CYCLE_DIV/i)*100.0;
+		if(progress >= prev_progress+2.0) {
+			printf("%f%\n", progress);
+			prev_progress = progress;
+		} 
 
 		count = count * 2;
 		float x_offset = (float)(MAPSIZE - 1) / (float)count;
@@ -167,6 +179,7 @@ void genHeatMap(Map* map, Map* heatmap) {
 					for (int in_x2 = 0; in_x2 < x_offset; in_x2++)
 					{
 						heatmap->map[(int)pt.y + in_y2][(int)pt.x + in_x2] += average*HEATMAP_DENSITY;
+						// heatmap->map[(int)pt.y + in_y2][(int)pt.x + in_x2] = heatmap->map[(int)pt.y + in_y2][(int)pt.x + in_x2] / 10.0;
 					}
 				}
 
