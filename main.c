@@ -34,6 +34,10 @@ int main(int argc, char** argv) {
 	bmp_img_init_df(&img, MAPSIZE, MAPSIZE);
 
 	Map map = gen_diamond_square(&img);
+	Map heatmap;
+
+	genHeatMap(&map, &heatmap);
+	map = heatmap;
 
 	donothing();	
 
@@ -41,15 +45,18 @@ int main(int argc, char** argv) {
 		for(int x=0; x<MAPSIZE; x++) {
 			//float output = perlin2(x,y,120.0,1.0,4.0);
 			//float precalc = (5.0f * ((1.0 + output)/2.0f));
-			float precalc = (((1.0 + map.map[y][x])/2.0f));
+			float precalc = (((1.0 + heatmap.map[y][x])/2.0f));
 			// int calc = (int)precalc; 
 			// char c = gradient5_1[calc];
 			// printf("%c",c);
-			float gray = precalc;
+			float gray = precalc*100.0;
 			RGB rgb = gray_to_rgb(gray);
 			bmp_pixel_init(&img.img_pixels[y][x], rgb.r, rgb.g, rgb.b);
+
+			// RGB rgb = gray_to_rgb(noise(x,y));
+			// bmp_pixel_init(&img.img_pixels[y][x], rgb.r, rgb.g, rgb.b);
 		}
-		printf("\n");
+		// printf("\n");
 	}
 	bmp_img_write(&img, "map.bmp");
 	bmp_img_free(&img);
