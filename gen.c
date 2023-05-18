@@ -13,19 +13,28 @@ Point getPoint(int x, int y, float x_offset, float y_offset, float* layout ) {
 
 	// old code:
 	// float coords2[2] = {(x+(topRight[0]*(x_offset-1))), (y+(topRight[1]*(y_offset-1)))};
-	float coords[2] = {
-		((float)x * x_offset) + (layout[0] * x_offset),
-		((float)y * y_offset) + (layout[1] * y_offset),
+	Point pt;
+	pt.x = ((float)x * x_offset) + (layout[0] * x_offset);
+	pt.y = ((float)y * y_offset) + (layout[1] * y_offset);
 
-	};
-	return (Point)coords;
+	// Safety check
+	if((pt.x >= (float)MAPSIZE) || (pt.y >= (float)MAPSIZE)) {
+		printf("ERROR:\nx: %f | y: %f\n", pt.x, pt.y);
+	}
+
+	return pt;
+}
+
+void checkPoint(Point *pt) {
+
+
 }
 
 Map gen_diamond_square(bmp_img* img ) {
 	Map gmap;
 	int count = 0;
 	// For each division
-	for(float i = (float)MAPSIZE-1; i > 0.001/((float)MAPSIZE-1); i = i/4.0f) {
+	for(float i = (float)MAPSIZE-1; i > 1.0; i = i/4.0f) {
 
 		count = count + 2;
 		float topLeft[2] = { 0, 0 };
@@ -39,8 +48,8 @@ Map gen_diamond_square(bmp_img* img ) {
 		float leftCenter[2] = { 0, 0.5 };
 		float rightCenter[2] = { 1, 0.5 };
 
-		float x_offset = (float)(MAPSIZE)/(float)count;
-		float y_offset = (float)(MAPSIZE)/(float)count;
+		float x_offset = (float)(MAPSIZE-1)/(float)count;
+		float y_offset = (float)(MAPSIZE-1)/(float)count;
 
 		int noise_i = 0;
 
@@ -55,28 +64,28 @@ Map gen_diamond_square(bmp_img* img ) {
 				float bR = noise(noise_i, 4);
 				float CC = ((tL+tR+bL+bR)/4.0f) + noise(noise_i,5); 
 
-				float coords1[2] = { (x+(topLeft[0]*(x_offset-1))),(y+(topLeft[1]*(y_offset-1)))};
-				float coords1[2] = {
-					(x*x_offset)+(topLeft[0]*x_offset),
-					(y*y_offset)+(topLeft[1]*y_offset),
+				// float coords1[2] = { (x+(topLeft[0]*(x_offset-1))),(y+(topLeft[1]*(y_offset-1)))};
+				// float coords1[2] = {
+				// 	(x*x_offset)+(topLeft[0]*x_offset),
+				// 	(y*y_offset)+(topLeft[1]*y_offset),
 
-				};
+				// };
 
-				float coords1[2] = getPoint(x,y,x_offset,y_offset,topLeft); 
-				gmap.map[(int)coords1[0]][(int)coords1[1]] = tL;
+				Point coords1 = getPoint(x,y,x_offset,y_offset,topLeft); 
+				gmap.map[(int)coords1.x][(int)coords1.y] = tL;
 
-				float coords2[2] = getPoint(x,y,x_offset,y_offset,topRight); 
-				gmap.map[(int)coords2[0]][(int)coords2[1]] = tR;
+				Point coords2 = getPoint(x,y,x_offset,y_offset,topRight); 
+				gmap.map[(int)coords2.x][(int)coords2.y] = tR;
 
-				float coords3[2] = getPoint(x,y,x_offset,y_offset,bottomLeft); 
-				gmap.map[(int)coords3[0]][(int)coords3[1]] = bL;
+				Point coords3 = getPoint(x,y,x_offset,y_offset,bottomLeft); 
+				gmap.map[(int)coords3.x][(int)coords3.y] = bL;
 
-				float coords4[2] = getPoint(x,y,x_offset,y_offset,bottomRight); 
-				gmap.map[(int)coords4[0]][(int)coords4[1]] = bR;
+				Point coords4 = getPoint(x,y,x_offset,y_offset,bottomRight); 
+				gmap.map[(int)coords4.x][(int)coords4.y] = bR;
 
 				// Center Average + random
-				float centercoords[2] = getPoint(x,y,x_offset,y_offset,center); 
-				gmap.map[(int)centercoords[0]][(int)centercoords[1]] = ((tL+tR+bL+bR)/4.0f) + noise(noise_i, 5);
+				Point centercoords = getPoint(x,y,x_offset,y_offset,center); 
+				gmap.map[(int)centercoords.x][(int)centercoords.y] = ((tL+tR+bL+bR)/4.0f) + noise(noise_i, 5);
 				noise_i = noise_i+(int)(noise(5+noise_i,1));
 
 				// Diamond Step
@@ -85,11 +94,17 @@ Map gen_diamond_square(bmp_img* img ) {
 				float lC = noise(noise_i, 3) + ((CC+tL+bL)/3.0);
 				float rC = noise(noise_i, 4) + ((CC+tR+bR)/3.0);
 
-				float coords5[2] = getPoint(x,y,x_offset,y_offset,topCenter); 
-				gmap.map[(int)coords5[0]][(int)coords5[1]] = tC;
-				gmap.map[(int)coords6[0]][(int)coords6[1]] = bC;
-				gmap.map[(int)coords6[0]][(int)(y+(leftCenter[1]*y_offset))] = lC;
-				gmap.map[(int)][(int)(y+(rightCenter[1]*y_offset))] = rC;
+				Point coords5 = getPoint(x,y,x_offset,y_offset,topCenter); 
+				gmap.map[(int)coords5.x][(int)coords5.y] = tC;
+
+				Point coords6 = getPoint(x,y,x_offset,y_offset,bottomCenter); 
+				gmap.map[(int)coords6.x][(int)coords6.y] = bC;
+
+				Point coords7 = getPoint(x,y,x_offset,y_offset,leftCenter); 
+				gmap.map[(int)coords7.x][(int)coords7.y] = lC;
+
+				Point coords8 = getPoint(x,y,x_offset,y_offset,rightCenter); 
+				gmap.map[(int)coords8.x][(int)coords8.y] = rC;
 
 				noise_i++;
 
