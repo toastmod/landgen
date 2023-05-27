@@ -30,14 +30,13 @@ Point getPoint(int x, int y, float x_offset, float y_offset, float* layout ) {
 }
 
 
-
 Map gen_diamond_square(bmp_img* img ) {
 	printf("Generating diamond-square map...\n");
 	Map gmap;
 	int count = 1;
 	// For each division
 	int noise_i = 0;
-	for(float i = (float)MAPSIZE-1; i > 0.1; i = i/4.0f) {
+	for(float i = (float)MAPSIZE-1; i > CYCLE_DIV; i = i/4.0f) {
 
 		float topLeft[2] = { 0, 0 };
 		float topRight[2] = { 0, 1 };
@@ -53,61 +52,91 @@ Map gen_diamond_square(bmp_img* img ) {
 		float x_offset = (float)(MAPSIZE-1)/(float)count;
 		float y_offset = (float)(MAPSIZE-1)/(float)count;
 
+		int first_step = 1;
+
+		float tL; 
+		float tR;
+		float bL;
+		float bR;
+		float CC; 
+
+		float tC;
+		float bC;
+		float lC;
+		float rC;
+
+		float noise_div = 1.0f;
 
 		// For each quadrant/square
 		for(int y=0; y < count; y++) {
 			for(int x=0; x < count; x++) {
 
-				// Square Step; Set corners to random values
-				float tL = noise(noise_i, 1);
-				float tR = noise(noise_i, 2);
-				float bL = noise(noise_i, 3);
-				float bR = noise(noise_i, 4);
-				float CC = ((tL+tR+bL+bR)/4.0f) + noise(noise_i,5); 
-
-				// float coords1[2] = { (x+(topLeft[0]*(x_offset-1))),(y+(topLeft[1]*(y_offset-1)))};
-				// float coords1[2] = {
-				// 	(x*x_offset)+(topLeft[0]*x_offset),
-				// 	(y*y_offset)+(topLeft[1]*y_offset),
-
-				// };
-
+				// Square points
 				Point coords1 = getPoint(x,y,x_offset,y_offset,topLeft); 
+				Point coords2 = getPoint(x,y,x_offset,y_offset,topRight); 
+				Point coords3 = getPoint(x,y,x_offset,y_offset,bottomLeft); 
+				Point coords4 = getPoint(x,y,x_offset,y_offset,bottomRight); 
+
+				Point coords5 = getPoint(x,y,x_offset,y_offset,topCenter); 
+				Point coords6 = getPoint(x,y,x_offset,y_offset,bottomCenter); 
+				Point coords7 = getPoint(x,y,x_offset,y_offset,leftCenter); 
+				Point coords8 = getPoint(x,y,x_offset,y_offset,rightCenter); 
+
+				Point centercoords = getPoint(x,y,x_offset,y_offset,center); 
+
+				// Square step
+				if(first_step == 1) {
+				    
+				    // Square Step init values are random
+				    tL = noise(noise_i, 1);
+				    tR = noise(noise_i, 2);
+				    bL = noise(noise_i, 3);
+				    bR = noise(noise_i, 4);
+				    CC = ((tL+tR+bL+bR)/4.0f) + (noise(noise_i,5)); 
+
+					first_step = 0;
+				}else{
+				    // Square Step values after first iteration
+					tL = gmap.map[(int)coords1.y][(int)coords1.x];
+					tR = gmap.map[(int)coords2.y][(int)coords2.x];
+					bL = gmap.map[(int)coords3.y][(int)coords3.x];
+					bR = gmap.map[(int)coords4.y][(int)coords4.x];
+				    CC = ((tL+tR+bL+bR)/4.0f) + (noise(noise_i,5)/noise_div); 
+
+				}
+
+				// Diamond step values
+				// only calculating tC and lC since averages will be filled out by interation
+			    tC = (noise(noise_i, 1)/noise_div) + ((CC+tL+tR)/3.0);
+			    //bC = (noise(noise_i, 2)/noise_div) + ((CC+bL+bR)/3.0);
+				lC = (noise(noise_i, 3)/noise_div) + ((CC+tL+bL)/3.0);
+				//rC = (noise(noise_i, 4)/noise_div) + ((CC+tR+bR)/3.0);
+				
+
+				// Square Step 
 				gmap.map[(int)coords1.y][(int)coords1.x] = tL;
 
-				Point coords2 = getPoint(x,y,x_offset,y_offset,topRight); 
 				gmap.map[(int)coords2.y][(int)coords2.x] = tR;
 
-				Point coords3 = getPoint(x,y,x_offset,y_offset,bottomLeft); 
 				gmap.map[(int)coords3.y][(int)coords3.x] = bL;
 
-				Point coords4 = getPoint(x,y,x_offset,y_offset,bottomRight); 
 				gmap.map[(int)coords4.y][(int)coords4.x] = bR;
 
 				// Center Average + random
-				Point centercoords = getPoint(x,y,x_offset,y_offset,center); 
 				gmap.map[(int)centercoords.y][(int)centercoords.x] = ((tL+tR+bL+bR)/4.0f) + noise(noise_i, 5);
-				// noise_i = noise_i+(int)(noise(5+noise_i,1));
 
-				// Diamond Step
-				float tC = noise(noise_i, 1) + ((CC+tL+tR)/3.0);
-				float bC = noise(noise_i, 2) + ((CC+bL+bR)/3.0);
-				float lC = noise(noise_i, 3) + ((CC+tL+bL)/3.0);
-				float rC = noise(noise_i, 4) + ((CC+tR+bR)/3.0);
-
-				Point coords5 = getPoint(x,y,x_offset,y_offset,topCenter); 
+				// Diamond Step		
 				gmap.map[(int)coords5.y][(int)coords5.x] = tC;
 
-				Point coords6 = getPoint(x,y,x_offset,y_offset,bottomCenter); 
 				gmap.map[(int)coords6.y][(int)coords6.x] = bC;
 
-				Point coords7 = getPoint(x,y,x_offset,y_offset,leftCenter); 
 				gmap.map[(int)coords7.y][(int)coords7.x] = lC;
 
-				Point coords8 = getPoint(x,y,x_offset,y_offset,rightCenter); 
 				gmap.map[(int)coords8.y][(int)coords8.x] = rC;
 
 				noise_i++;
+
+				noise_div = noise_div + 1.0f;
 
 			}
 		}
@@ -127,7 +156,7 @@ void floodCell(float tolerance, Map* map, Map* heatmap, int* coords, int* adjcoo
 	// check if adjancent coordinates are in bounds
 	if(!(pointOutOfBounds((float)adjcoords[0], (float)adjcoords[1]))) {
 		heatmap->map[adjcoords[1]][adjcoords[0]] = map->map[adjcoords[1]][adjcoords[0]] + tolerance * map->map[coords[1]][coords[0]];
-		heatmap->map[coords[1]][coords[0]] = map->map[coords[1]][coords[0]] / tolerance;
+		//heatmap->map[coords[1]][coords[0]] = map->map[coords[1]][coords[0]] / tolerance;
 		// heatmap->map[adjcoords[0]][adjcoords[1]] += map->map[adjcoords[0]][adjcoords[1]] + tolerance * map->map[coords[0]][coords[1]];
 		// heatmap->map[coords[0]][coords[1]] += 1.0;
 	}
@@ -146,7 +175,7 @@ void genHeatMap(Map* map, Map* heatmap) {
 
 		progress = (CYCLE_DIV/i)*100.0;
 		if(progress >= prev_progress+2.0) {
-			printf("%f%\n", progress);
+			printf("%f\n", progress);
 			prev_progress = progress;
 		} 
 
@@ -205,18 +234,19 @@ void intoHeatMap(Map *map, Map *heatmap)
 			int tLeft[2] = {x - 1, y - 1};
 			int tRight[2] = {x + 1, y - 1};
 			int bLeft[2] = {x - 1, y + 1};
-			int bRight[2] = {x + 1, y - 1};
+			int bRight[2] = {x + 1, y + 1};
 
 			int coords[2] = {x, y};
 
+			// Not all due to overlap in interation
 			floodCell(TOLERANCE, map, heatmap, coords, top);
-			floodCell(TOLERANCE, map, heatmap, coords, bottom);
+			//floodCell(TOLERANCE, map, heatmap, coords, bottom);
 			floodCell(TOLERANCE, map, heatmap, coords, left);
-			floodCell(TOLERANCE, map, heatmap, coords, right);
+			//floodCell(TOLERANCE, map, heatmap, coords, right);
 			floodCell(TOLERANCE, map, heatmap, coords, tLeft);
-			floodCell(TOLERANCE, map, heatmap, coords, tRight);
-			floodCell(TOLERANCE, map, heatmap, coords, bLeft);
-			floodCell(TOLERANCE, map, heatmap, coords, bRight);
+			//floodCell(TOLERANCE, map, heatmap, coords, tRight);
+			//floodCell(TOLERANCE, map, heatmap, coords, bLeft);
+			//floodCell(TOLERANCE, map, heatmap, coords, bRight);
 
 		}
 	}

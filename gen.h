@@ -1,9 +1,11 @@
 #include <math.h>
-#define MAPSIZE 700
-#define TOLERANCE 0.05f
-#define HEATMAP_DENSITY 0.005
-#define CYCLE_DIV 0.0001
-#define COLOR_DENSITY 250.0
+#define MAPSIZE 501 
+#define HEATMAPDEPTH 1 
+#define TOLERANCE 5.0f // DEPRECATED
+#define HEATMAP_DENSITY 0.5
+#define CYCLE_DIV 0.0005
+#define COLOR_DENSITY 255.0
+#define WATERLEVEL 1.0
 
 typedef struct Point_t {
 	float x;
