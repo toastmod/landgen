@@ -41,14 +41,17 @@ int main(int argc, char** argv) {
 	Map heatmap;
 
 	for(int i=0; i<HEATMAPDEPTH; i++) {
-		genHeatMap(&map, &heatmap);
+		//genHeatMap(&map, &heatmap);
 		//map = heatmap;
 	}
 
 
 	FILE* csv = fopen("map.csv", "w");
+	FILE* dat = fopen("map.dat", "wb");
 
 	donothing();	
+	float scale = 1.0;
+	float dummy = 0.0;
 
 
 	for(int y=0; y<MAPSIZE; y++) {
@@ -63,7 +66,25 @@ int main(int argc, char** argv) {
 			RGB rgb = gray_to_rgb(gray);
 			bmp_pixel_init(&img.img_pixels[y][x], rgb.r, rgb.g, rgb.b);
 			//fprintf(csv, "%f/%f/%f,", rgb.r,rgb.g,rgb.b);
+			float xf = (float)x;
+			float zf = (float)y;
 			fprintf(csv, "%f,", rgb.g);
+			
+			// Normal
+		    fwrite(&dummy, 4, 1, dat);
+			fwrite(&dummy, 4, 1, dat);
+			fwrite(&dummy, 4, 1, dat);
+
+			// Color
+			fwrite(&rgb.r, 4, 1, dat);
+			fwrite(&rgb.g, 4, 1, dat);
+			fwrite(&rgb.b, 4, 1, dat);
+			
+			// Position
+			fwrite(&xf, 4, 1, dat);
+			fwrite(&rgb.g, 4, 1, dat);
+			fwrite(&zf, 4, 1, dat);
+
 
 			// RGB rgb = gray_to_rgb(noise(x,y));
 			// bmp_pixel_init(&img.img_pixels[y][x], rgb.r, rgb.g, rgb.b);
@@ -81,6 +102,7 @@ int main(int argc, char** argv) {
     bmp_pixel_init(&img.img_pixels[MAPSIZE-1][MAPSIZE-1], 255.0f, 255.0f, 0.0f);
 
 	fclose(csv);
+	fclose(dat);
 	bmp_img_write(&img, "map.bmp");
 	bmp_img_free(&img);
 	return 0;
