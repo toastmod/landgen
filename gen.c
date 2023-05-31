@@ -30,13 +30,14 @@ Point getPoint(int x, int y, float x_offset, float y_offset, float* layout ) {
 }
 
 
-Map gen_diamond_square(bmp_img* img ) {
+Map gen_diamond_square() {
 	printf("Generating diamond-square map...\n");
 	Map gmap;
 	int count = 1;
+	int iterations = 0;
 	// For each division
 	int noise_i = 0;
-	for(float i = (float)MAPSIZE-1; i > CYCLE_DIV; i = i/4.0f) {
+	for(float i = (float)MAPSIZE; i > CYCLE_DIV; i = i/4.0f) {
 
 		float topLeft[2] = { 0, 0 };
 		float topRight[2] = { 0, 1 };
@@ -49,8 +50,9 @@ Map gen_diamond_square(bmp_img* img ) {
 		float leftCenter[2] = { 0, 0.5 };
 		float rightCenter[2] = { 1, 0.5 };
 
-		float x_offset = (float)(MAPSIZE-1)/(float)count;
-		float y_offset = (float)(MAPSIZE-1)/(float)count;
+		float x_offset = ((float)(MAPSIZE-1.0f)/(float)count);
+		float y_offset = ((float)(MAPSIZE-1.0f)/(float)count);
+		printf("x_offset: %f | y_offset: %f\n", x_offset, y_offset);
 
 		int first_step = 1;
 
@@ -123,7 +125,8 @@ Map gen_diamond_square(bmp_img* img ) {
 				gmap.map[(int)coords4.y][(int)coords4.x] = bR;
 
 				// Center Average + random
-				gmap.map[(int)centercoords.y][(int)centercoords.x] = ((tL+tR+bL+bR)/4.0f) + noise(noise_i, 5);
+				gmap.map[(int)centercoords.y][(int)centercoords.x] = ((tL+tR+bL+bR)/4.0f) + (noise(noise_i, 5)/noise_div);
+
 
 				// Diamond Step		
 				gmap.map[(int)coords5.y][(int)coords5.x] = tC;
@@ -136,18 +139,22 @@ Map gen_diamond_square(bmp_img* img ) {
 
 				noise_i++;
 
-				noise_div = noise_div + 1.0f;
 
 			}
+
 		}
 
+
+		noise_div = noise_div + NOISEDIV;
+
 		count = count * 2; 
+		iterations += 1;
 		// Decrease noise output
 		//NOISEMUL = NOISEMUL/2.0f;
 	
 	}
 
-	printf("DONE!\n");
+	printf("DONE! Performed %i iterations.\n", iterations);
 	return gmap;
 }
 
